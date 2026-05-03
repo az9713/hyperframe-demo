@@ -4,7 +4,7 @@ A test of [HyperFrames](https://github.com/heygen-com/hyperframes) generating a 
 
 ## The Prompt
 
-> use hyperframes to create a 15 second video for the paper .ignore/verkor*pdf
+> use hyperframes to create a 15 second video for the paper https://arxiv.org/pdf/2603.08716
 
 That's the complete prompt. Claude Code read the PDF, designed the composition, wrote the HTML, fixed lint warnings, and rendered the MP4 — no manual editing.
 
@@ -18,7 +18,7 @@ Design Conductor (DC) is an autonomous AI agent that built a complete RISC-V CPU
 
 ## The Output
 
-**[▶ Watch verkor.mp4](YOUR_MP4_URL_HERE)**
+**[▶ Watch verkor.mp4](https://github.com/user-attachments/assets/ec37a9ec-d6e1-4dd0-b987-9e239ecb09de)**
 
 | Property | Value |
 |---|---|
