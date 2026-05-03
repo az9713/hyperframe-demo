@@ -18,7 +18,7 @@ Design Conductor (DC) is an autonomous AI agent that built a complete RISC-V CPU
 
 ## The Output
 
-**[▶ Watch verkor.mp4](https://github.com/user-attachments/assets/ec37a9ec-d6e1-4dd0-b987-9e239ecb09de)**
+<video src="https://github.com/user-attachments/assets/ec37a9ec-d6e1-4dd0-b987-9e239ecb09de" controls width="100%"></video>
 
 | Property | Value |
 |---|---|
