@@ -50,7 +50,7 @@ This installs 12 skills into `.claude/skills/` (symlinked from `.agents/skills/`
 ### 2. One-shot prompt
 
 ```
-use hyperframes to create a 15 second video for the paper .ignore/verkor*pdf
+use hyperframes to create a 15 second video for the paper https://arxiv.org/pdf/2603.08716
 ```
 
 Claude Code:
