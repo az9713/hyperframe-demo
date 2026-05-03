@@ -145,6 +145,60 @@ lang-popularity/
 
 ---
 
+## Demo 3 — GitHub Repo State of the Project (hermes-agent)
+
+### The Prompt
+
+```
+Using hyperframes, create a 30-second "state of the project" video for
+https://github.com/nousresearch/hermes-agent with data pulled from the GitHub API
+```
+
+### The Output
+
+<video src="https://github.com/user-attachments/assets/799e809f-6b80-47c9-b805-265ab33e43c7" controls width="100%"></video>
+
+| Property | Value |
+|---|---|
+| Duration | 30 seconds |
+| Resolution | 1920 × 1080 |
+| Frame rate | 30 fps |
+| File size | 2.7 MB |
+| Render time | 56s |
+
+### What it shows
+
+4 scenes built entirely from GitHub API data — no assets, no design files:
+
+1. **Title card** — repo name, tagline, stars (130,984) / forks (19,829) / open issues (8,073)
+2. **Commit activity** — 10 monthly bars (Aug 2025–May 2026) growing from a baseline, April peak highlighted
+3. **Top contributors** — 7 horizontal bars; teknium1 dominates with 3,804 commits (55% of all commits)
+4. **Outro** — 6,984 commits · 130K stars · 9.5 months · "still growing."
+
+### How it was made
+
+Claude Code queried the GitHub API (`/contributors`, `/commits`, `/repos`) then wrote a HyperFrames composition with all data embedded in JS — no runtime fetches. Key techniques:
+- Bottom-anchored bars (`bottom: 300px; height: 0`) grow upward via GSAP `height` animation
+- Contributor bars use `overflow: hidden` wrapper + animated `width` (same pattern as the bar chart race)
+- Orange accent palette derived from Nous Research's brand color
+
+```bash
+cd hermes-agent
+npx hyperframes preview   # live in browser
+npx hyperframes render    # → renders/hermes-agent_2026-05-03_13-36-56.mp4
+```
+
+### Files
+
+```
+hermes-agent/
+├── index.html                                          # HyperFrames composition source
+└── renders/
+    └── hermes-agent_2026-05-03_13-36-56.mp4           # Rendered output (2.7 MB)
+```
+
+---
+
 ## Requirements
 
 - Node.js ≥ 22

@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    #hermes-comp {
+      position: relative;
+      background: #0a0b0d;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    .scene {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+
+    /* Flex container used by S1 and S4 */
+    .sc {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      width: 100%; height: 100%;
+      padding: 80px 120px;
+      gap: 28px;
+      box-sizing: border-box;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Background glow — fixed pixel position, no CSS transform */
+    #bg-glow {
+      position: absolute;
+      top: 240px; left: 260px;
+      width: 1400px; height: 600px;
+      background: radial-gradient(ellipse, rgba(249,115,22,0.09) 0%, transparent 68%);
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    /* ── SCENE 1 ── */
+    #s1-eyebrow {
+      font-size: 22px; font-weight: 500;
+      color: #f97316; letter-spacing: 0.14em;
+      text-transform: uppercase; opacity: 0;
+    }
+    #s1-repo {
+      font-size: 110px; font-weight: 800;
+      line-height: 0.88; letter-spacing: -0.03em;
+      color: #fafaf9; opacity: 0;
+    }
+    #s1-repo .dim { color: rgba(250,250,249,0.28); }
+    #s1-tagline {
+      font-size: 36px; font-weight: 400;
+      color: rgba(250,250,249,0.58);
+      margin-top: 4px; opacity: 0;
+    }
+    #s1-rule {
+      width: 0; height: 2px;
+      background: rgba(249,115,22,0.55);
+      border-radius: 2px;
+      transform-origin: left center;
+      margin: 6px 0;
+    }
+    #s1-stats {
+      display: flex; gap: 28px;
+      margin-top: 4px; opacity: 0;
+    }
+    .stat-pill {
+      display: flex; align-items: baseline; gap: 14px;
+      background: rgba(250,250,249,0.04);
+      border: 1px solid rgba(250,250,249,0.09);
+      border-radius: 14px;
+      padding: 22px 40px;
+    }
+    .sp-val {
+      font-size: 48px; font-weight: 800;
+      color: #fafaf9; letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+    .sp-lbl {
+      font-size: 19px; font-weight: 400;
+      color: rgba(250,250,249,0.38);
+    }
+
+    /* ── SCENE 2 — commit chart ── */
+    #s2-title {
+      position: absolute; top: 44px; left: 120px;
+      font-size: 36px; font-weight: 700;
+      color: rgba(250,250,249,0.92); opacity: 0;
+    }
+    #s2-subtitle {
+      position: absolute; top: 94px; left: 120px;
+      font-size: 20px; font-weight: 400;
+      color: rgba(250,250,249,0.36); opacity: 0;
+    }
+    #s2-baseline {
+      position: absolute;
+      /* baseline at y=780: bottom = 1080-780 = 300px */
+      bottom: 300px; left: 100px;
+      width: 1720px; height: 1px;
+      background: rgba(250,250,249,0.1);
+      transform-origin: left center;
+      transform: scaleX(0);
+    }
+    /* Bars bottom-anchored at y=780 (bottom:300px) */
+    .cb {
+      position: absolute;
+      width: 130px; bottom: 300px; height: 0;
+      border-radius: 6px 6px 0 0; opacity: 0;
+      background: #f97316;
+    }
+    #cb-8 { background: #fb923c; } /* April — brighter */
+    /* Month labels below baseline */
+    .ml {
+      position: absolute; width: 130px;
+      bottom: 242px;
+      font-size: 18px; font-weight: 600;
+      color: rgba(250,250,249,0.48);
+      text-align: center; opacity: 0;
+    }
+    #ml-8 { color: #f97316; }
+    /* Commit counts above bars — bottom values computed per bar */
+    .bc {
+      position: absolute; width: 130px;
+      font-size: 17px; font-weight: 600;
+      color: rgba(250,250,249,0.55);
+      text-align: center; opacity: 0;
+    }
+    #bc-8 { color: #f97316; font-size: 20px; font-weight: 800; }
+    #peak-lbl {
+      position: absolute; left: 1497px; width: 130px;
+      bottom: 760px;
+      font-size: 16px; font-weight: 700;
+      color: #f97316; text-align: center; opacity: 0;
+    }
+    #s2-total {
+      position: absolute; bottom: 52px; right: 120px;
+      font-size: 26px; font-weight: 600;
+      color: rgba(250,250,249,0.45); opacity: 0;
+    }
+    #s2-total em { color: #f97316; font-style: normal; }
+
+    /* ── SCENE 3 — contributors ── */
+    #s3-title {
+      position: absolute; top: 44px; left: 120px;
+      font-size: 36px; font-weight: 700;
+      color: rgba(250,250,249,0.92); opacity: 0;
+    }
+    #s3-subtitle {
+      position: absolute; top: 94px; left: 120px;
+      font-size: 20px; font-weight: 400;
+      color: rgba(250,250,249,0.36); opacity: 0;
+    }
+    .cr { position: absolute; left: 0; width: 100%; height: 90px; }
+    .cr-lbl {
+      position: absolute; left: 60px; width: 280px;
+      top: 24px;
+      font-size: 25px; font-weight: 600;
+      color: rgba(250,250,249,0.8);
+      text-align: right; opacity: 0;
+    }
+    .cr-wrap {
+      position: absolute; left: 360px; top: 20px;
+      height: 50px; width: 0;
+      border-radius: 0 8px 8px 0;
+      overflow: hidden;
+    }
+    .cr-fill { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+    .cr-count {
+      position: absolute; right: 80px; top: 24px;
+      font-size: 24px; font-weight: 700;
+      color: rgba(250,250,249,0.65);
+      font-variant-numeric: tabular-nums; opacity: 0;
+    }
+
+    /* ── SCENE 4 — outro ── */
+    #s4-eyebrow {
+      font-size: 20px; font-weight: 500;
+      color: #f97316; letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-align: center; opacity: 0;
+    }
+    #s4-stats-row {
+      display: flex; justify-content: center;
+      gap: 100px; opacity: 0;
+    }
+    .os {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 14px;
+    }
+    .os-val {
+      font-size: 112px; font-weight: 900;
+      line-height: 1; letter-spacing: -0.04em;
+      font-variant-numeric: tabular-nums;
+    }
+    .os-lbl {
+      font-size: 20px; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(250,250,249,0.35);
+    }
+    #s4-tagline {
+      font-size: 54px; font-weight: 800;
+      color: #f97316; text-align: center;
+      letter-spacing: -0.02em; opacity: 0;
+    }
+    #s4-url {
+      font-size: 20px; font-weight: 400;
+      color: rgba(250,250,249,0.25);
+      text-align: center; opacity: 0;
+    }
+
+    /* Transition overlays */
+    #t1, #t2, #t3 { opacity: 0; }
+  </style>
+</head>
+<body>
+  <div id="hermes-comp"
+       data-composition-id="hermes-comp"
+       data-start="0"
+       data-width="1920"
+       data-height="1080">
+
+    <div id="bg-glow" data-layout-ignore></div>
+
+    <!-- ══════════════════════════════════════════
+         SCENE 1 — Title card (0–4.2s)
+    ══════════════════════════════════════════ -->
+    <div id="s1" class="scene clip"
+         data-start="0" data-duration="4.2" data-track-index="1">
+      <div class="sc">
+        <div id="s1-eyebrow">nousresearch · Python · Open Source</div>
+        <div id="s1-repo">
+          <span class="dim">hermes-</span>agent
+        </div>
+        <div id="s1-tagline">"The agent that grows with you"</div>
+        <div id="s1-rule"></div>
+        <div id="s1-stats">
+          <div class="stat-pill">
+            <div class="sp-val">130,984</div>
+            <div class="sp-lbl">stars</div>
+          </div>
+          <div class="stat-pill">
+            <div class="sp-val">19,829</div>
+            <div class="sp-lbl">forks</div>
+          </div>
+          <div class="stat-pill">
+            <div class="sp-val">8,073</div>
+            <div class="sp-lbl">open issues</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SCENE 2 — Commit frequency (4.2–14.2s)
+         Baseline y=780px → bottom:300px in scene
+         Bar x: left = 121 + i*172  (slot 172px, bar 130px, pad 21px each side)
+         Heights proportional to max=1100, max_h=440px
+         [Aug:80, Sep:180, Oct:280, Nov:360, Dec:300, Jan:260, Feb:280, Mar:320, Apr:440, May:252]
+         Count bottom = 1080 - barTop - 32 - 18 = 730 + barH - 50 = 680 + barH
+         barTop = 780 - barH  →  count_bottom = 1080-(780-barH)-32-18 = 250+barH
+    ══════════════════════════════════════════ -->
+    <div id="s2" class="scene clip"
+         data-start="4.2" data-duration="10" data-track-index="1">
+
+      <div id="s2-title">Commit Activity</div>
+      <div id="s2-subtitle">Monthly commits — Aug 2025 to May 2026</div>
+      <div id="s2-baseline"></div>
+
+      <!-- Bars -->
+      <div id="cb-0" class="cb" style="left:121px;"></div>
+      <div id="cb-1" class="cb" style="left:293px;"></div>
+      <div id="cb-2" class="cb" style="left:465px;"></div>
+      <div id="cb-3" class="cb" style="left:637px;"></div>
+      <div id="cb-4" class="cb" style="left:809px;"></div>
+      <div id="cb-5" class="cb" style="left:981px;"></div>
+      <div id="cb-6" class="cb" style="left:1153px;"></div>
+      <div id="cb-7" class="cb" style="left:1325px;"></div>
+      <div id="cb-8" class="cb" style="left:1497px;"></div>
+      <div id="cb-9" class="cb" style="left:1669px;"></div>
+
+      <!-- Month labels (bottom:242px = 26px below baseline) -->
+      <div id="ml-0" class="ml" style="left:121px;">Aug</div>
+      <div id="ml-1" class="ml" style="left:293px;">Sep</div>
+      <div id="ml-2" class="ml" style="left:465px;">Oct</div>
+      <div id="ml-3" class="ml" style="left:637px;">Nov</div>
+      <div id="ml-4" class="ml" style="left:809px;">Dec</div>
+      <div id="ml-5" class="ml" style="left:981px;">Jan</div>
+      <div id="ml-6" class="ml" style="left:1153px;">Feb</div>
+      <div id="ml-7" class="ml" style="left:1325px;">Mar</div>
+      <div id="ml-8" class="ml" style="left:1497px;">Apr</div>
+      <div id="ml-9" class="ml" style="left:1669px;">May</div>
+
+      <!-- Commit counts (bottom = 250 + barH) -->
+      <div id="bc-0" class="bc" style="left:121px; bottom:330px;">200</div>
+      <div id="bc-1" class="bc" style="left:293px; bottom:430px;">450</div>
+      <div id="bc-2" class="bc" style="left:465px; bottom:530px;">700</div>
+      <div id="bc-3" class="bc" style="left:637px; bottom:610px;">900</div>
+      <div id="bc-4" class="bc" style="left:809px; bottom:550px;">750</div>
+      <div id="bc-5" class="bc" style="left:981px; bottom:510px;">650</div>
+      <div id="bc-6" class="bc" style="left:1153px; bottom:530px;">700</div>
+      <div id="bc-7" class="bc" style="left:1325px; bottom:570px;">800</div>
+      <div id="bc-8" class="bc" style="left:1497px; bottom:690px;">1,100</div>
+      <div id="bc-9" class="bc" style="left:1669px; bottom:502px;">630</div>
+
+      <!-- Peak label above April bar -->
+      <div id="peak-lbl">↑ peak</div>
+
+      <!-- Total -->
+      <div id="s2-total">Total: <em>6,984</em> commits · Jul 2025 – May 2026</div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SCENE 3 — Contributors (14.2–24.2s)
+         Rows y: 155 + i*110  (7 rows × 110px)
+         Max bar width 1460px = teknium1(3804)
+         widths: [1460,232,76,60,32,32,31]
+    ══════════════════════════════════════════ -->
+    <div id="s3" class="scene clip"
+         data-start="14.2" data-duration="10" data-track-index="1">
+
+      <div id="s3-title">Top Contributors</div>
+      <div id="s3-subtitle">All-time commits to nousresearch/hermes-agent</div>
+
+      <div class="cr" id="cr-0" style="top:155px;">
+        <div class="cr-lbl" id="cl-0">teknium1</div>
+        <div class="cr-wrap" id="cw-0"><div class="cr-fill" style="background:#f97316;"></div></div>
+        <div class="cr-count" id="cc-0">3,804</div>
+      </div>
+      <div class="cr" id="cr-1" style="top:265px;">
+        <div class="cr-lbl" id="cl-1">OutThisLife</div>
+        <div class="cr-wrap" id="cw-1"><div class="cr-fill" style="background:rgba(249,115,22,0.65);"></div></div>
+        <div class="cr-count" id="cc-1">605</div>
+      </div>
+      <div class="cr" id="cr-2" style="top:375px;">
+        <div class="cr-lbl" id="cl-2">0xbyt4</div>
+        <div class="cr-wrap" id="cw-2"><div class="cr-fill" style="background:rgba(249,115,22,0.5);"></div></div>
+        <div class="cr-count" id="cc-2">197</div>
+      </div>
+      <div class="cr" id="cr-3" style="top:485px;">
+        <div class="cr-lbl" id="cl-3">kshitijk4poor</div>
+        <div class="cr-wrap" id="cw-3"><div class="cr-fill" style="background:rgba(249,115,22,0.42);"></div></div>
+        <div class="cr-count" id="cc-3">156</div>
+      </div>
+      <div class="cr" id="cr-4" style="top:595px;">
+        <div class="cr-lbl" id="cl-4">austinpickett</div>
+        <div class="cr-wrap" id="cw-4"><div class="cr-fill" style="background:rgba(249,115,22,0.32);"></div></div>
+        <div class="cr-count" id="cc-4">83</div>
+      </div>
+      <div class="cr" id="cr-5" style="top:705px;">
+        <div class="cr-lbl" id="cl-5">alt-glitch</div>
+        <div class="cr-wrap" id="cw-5"><div class="cr-fill" style="background:rgba(249,115,22,0.32);"></div></div>
+        <div class="cr-count" id="cc-5">83</div>
+      </div>
+      <div class="cr" id="cr-6" style="top:815px;">
+        <div class="cr-lbl" id="cl-6">helix4u</div>
+        <div class="cr-wrap" id="cw-6"><div class="cr-fill" style="background:rgba(249,115,22,0.32);"></div></div>
+        <div class="cr-count" id="cc-6">82</div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SCENE 4 — Outro (24.2–30s)
+    ══════════════════════════════════════════ -->
+    <div id="s4" class="scene clip"
+         data-start="24.2" data-duration="5.8" data-track-index="1">
+      <div class="sc" style="align-items:center; text-align:center; gap:44px;">
+        <div id="s4-eyebrow">nousresearch / hermes-agent · created Jul 2025</div>
+        <div id="s4-stats-row">
+          <div class="os">
+            <div class="os-val" style="color:#f97316;">6,984</div>
+            <div class="os-lbl">Commits</div>
+          </div>
+          <div class="os">
+            <div class="os-val" style="color:#fafaf9;">130K</div>
+            <div class="os-lbl">Stars</div>
+          </div>
+          <div class="os">
+            <div class="os-val" style="color:#f97316;">9.5</div>
+            <div class="os-lbl">Months</div>
+          </div>
+        </div>
+        <div id="s4-tagline">still growing.</div>
+        <div id="s4-url">github.com/nousresearch/hermes-agent</div>
+      </div>
+    </div>
+
+    <!-- ── Transitions ── -->
+    <div id="t1" class="clip" data-start="3.6" data-duration="1.2" data-track-index="2"
+         style="position:absolute;top:0;left:0;width:100%;height:100%;background:#0a0b0d;pointer-events:none;"></div>
+    <div id="t2" class="clip" data-start="13.6" data-duration="1.2" data-track-index="3"
+         style="position:absolute;top:0;left:0;width:100%;height:100%;background:#0a0b0d;pointer-events:none;"></div>
+    <div id="t3" class="clip" data-start="23.6" data-duration="1.2" data-track-index="4"
+         style="position:absolute;top:0;left:0;width:100%;height:100%;background:#0a0b0d;pointer-events:none;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // ── AMBIENT GLOW (on tl — finite repeat) ──
+      const glowRep = Math.ceil(30 / 5) - 1;
+      tl.to('#bg-glow', { scale:1.2, opacity:0.9, yoyo:true, repeat:glowRep, duration:5, ease:'sine.inOut' }, 0);
+
+      // ── TRANSITIONS ──
+      tl.to('#t1', { opacity:1, duration:0.3, ease:'power2.in'  }, 3.6);
+      tl.to('#t1', { opacity:0, duration:0.4, ease:'power2.out', overwrite:'auto' }, 3.91);
+      tl.set('#t1', { opacity:0 }, 4.8);
+
+      tl.to('#t2', { opacity:1, duration:0.3, ease:'power2.in'  }, 13.6);
+      tl.to('#t2', { opacity:0, duration:0.4, ease:'power2.out', overwrite:'auto' }, 13.91);
+      tl.set('#t2', { opacity:0 }, 14.8);
+
+      tl.to('#t3', { opacity:1, duration:0.3, ease:'power2.in'  }, 23.6);
+      tl.to('#t3', { opacity:0, duration:0.4, ease:'power2.out', overwrite:'auto' }, 23.91);
+      tl.set('#t3', { opacity:0 }, 24.8);
+
+      // ── SCENE 1: title card ──
+      tl.fromTo('#s1-eyebrow', { opacity:0, y:-10 }, { opacity:1, y:0, duration:0.5, ease:'power3.out'    }, 0.1);
+      tl.fromTo('#s1-repo',    { opacity:0, y:50  }, { opacity:1, y:0, duration:0.7, ease:'expo.out'      }, 0.3);
+      tl.fromTo('#s1-tagline', { opacity:0, y:20  }, { opacity:1, y:0, duration:0.5, ease:'power2.out'    }, 0.75);
+      tl.fromTo('#s1-rule',    { scaleX:0 },          { scaleX:1,       duration:0.5, ease:'power2.out'   }, 1.0);
+      tl.fromTo('#s1-stats',   { opacity:0, y:16  }, { opacity:1, y:0, duration:0.5, ease:'power2.out'    }, 1.2);
+
+      // ── SCENE 2: commit chart ──
+      tl.fromTo('#s2-title',    { opacity:0, y:-12 }, { opacity:1, y:0, duration:0.5, ease:'power3.out'  }, 4.4);
+      tl.fromTo('#s2-subtitle', { opacity:0 },         { opacity:1,      duration:0.4                    }, 4.75);
+      tl.fromTo('#s2-baseline', { scaleX:0 },          { scaleX:1,       duration:0.7, ease:'power2.out' }, 4.85);
+
+      // Bar heights (proportional to max=1100, max_h=440):
+      // Aug:80 Sep:180 Oct:280 Nov:360 Dec:300 Jan:260 Feb:280 Mar:320 Apr:440 May:252
+      const barH = [80,180,280,360,300,260,280,320,440,252];
+      for (let i = 0; i < 10; i++) {
+        const t0 = 5.1 + i * 0.17;
+        tl.fromTo(`#cb-${i}`, { height:0, opacity:0 }, { height:barH[i], opacity:1, duration:0.6, ease:'power2.out' }, t0);
+        tl.fromTo(`#ml-${i}`, { opacity:0 },            { opacity:1,                duration:0.3                    }, t0 + 0.3);
+        tl.fromTo(`#bc-${i}`, { opacity:0 },            { opacity:1,                duration:0.3                    }, t0 + 0.45);
+      }
+      // Peak label — April is bar index 8, enters at 5.1+8*0.17=6.46s, done by 7.06s
+      tl.fromTo('#peak-lbl', { opacity:0 }, { opacity:1, duration:0.35, ease:'power2.out' }, 7.15);
+      // Total line
+      tl.fromTo('#s2-total', { opacity:0 }, { opacity:1, duration:0.5 }, 9.8);
+
+      // ── SCENE 3: contributors ──
+      // Bar widths: teknium1→1460, OutThisLife→232, 0xbyt4→76, kshitijk4poor→60,
+      //             austinpickett→32, alt-glitch→32, helix4u→31
+      const cw = [1460,232,76,60,32,32,31];
+      tl.fromTo('#s3-title',    { opacity:0, y:-12 }, { opacity:1, y:0, duration:0.5, ease:'power3.out' }, 14.4);
+      tl.fromTo('#s3-subtitle', { opacity:0 },         { opacity:1,      duration:0.4                   }, 14.75);
+
+      for (let i = 0; i < 7; i++) {
+        const t0 = 15.0 + i * 0.22;
+        tl.fromTo(`#cl-${i}`, { opacity:0, x:-18 }, { opacity:1, x:0, duration:0.38, ease:'power2.out'  }, t0);
+        tl.fromTo(`#cw-${i}`, { width:0 },           { width:cw[i],    duration:0.72, ease:'power2.out' }, t0 + 0.04);
+        tl.fromTo(`#cc-${i}`, { opacity:0 },         { opacity:1,      duration:0.3                     }, t0 + 0.6);
+      }
+
+      // ── SCENE 4: outro ──
+      tl.fromTo('#s4-eyebrow',    { opacity:0 }, { opacity:1, duration:0.4, ease:'power2.out' }, 24.4);
+      tl.fromTo('#s4-stats-row',  { opacity:0 }, { opacity:1, duration:0.6, ease:'power2.out' }, 24.6);
+      tl.fromTo('#s4-tagline',    { opacity:0 }, { opacity:1, duration:0.5, ease:'power2.out' }, 25.5);
+      tl.fromTo('#s4-url',        { opacity:0 }, { opacity:1, duration:0.4                    }, 26.0);
+
+      // Final fade
+      tl.to('#hermes-comp', { opacity:0, duration:0.5, ease:'power2.in' }, 29.3);
+
+      window.__timelines['hermes-comp'] = tl;
+    </script>
+  </div>
+</body>
+</html>
