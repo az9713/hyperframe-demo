@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    #verkor-main {
+      position: relative;
+      background: #07070f;
+      font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    /* Scene base — each scene fills the full composition frame */
+    .scene {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+
+    /* Subtle circuit-grid background — deterministic, no JS */
+    .grid-bg {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-image:
+        linear-gradient(rgba(0, 212, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 212, 255, 0.04) 1px, transparent 1px);
+      background-size: 80px 80px;
+      pointer-events: none;
+    }
+
+    /* Content container — end-state layout, padding positions content inward */
+    .scene-content {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      padding: 120px 160px;
+      gap: 28px;
+      box-sizing: border-box;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ──────────────────────────────────────────
+       SCENE 1 — Hook
+    ────────────────────────────────────────── */
+    #s1-eyebrow {
+      font-size: 26px;
+      color: #00d4ff;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+    #s1-title {
+      font-size: 148px;
+      font-weight: 800;
+      line-height: 0.88;
+      letter-spacing: -0.03em;
+      color: #f0f0ff;
+    }
+    #s1-title .accent { color: #00d4ff; }
+    #s1-sub {
+      font-size: 38px;
+      color: rgba(240, 240, 255, 0.55);
+      font-weight: 400;
+      margin-top: 8px;
+    }
+    /* Decorative radial glow — absolute, never audited for overflow */
+    #s1-glow {
+      position: absolute;
+      top: -180px;
+      right: -180px;
+      width: 680px;
+      height: 680px;
+      background: radial-gradient(circle, rgba(0, 212, 255, 0.13) 0%, transparent 68%);
+      pointer-events: none;
+    }
+    #s1-glow2 {
+      position: absolute;
+      bottom: -200px;
+      left: 30%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(124, 58, 237, 0.1) 0%, transparent 68%);
+      pointer-events: none;
+    }
+
+    /* ──────────────────────────────────────────
+       SCENE 2 — What is Design Conductor
+    ────────────────────────────────────────── */
+    #s2-label {
+      font-size: 22px;
+      color: #7c3aed;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    #s2-title {
+      font-size: 88px;
+      font-weight: 800;
+      line-height: 0.92;
+      letter-spacing: -0.025em;
+      color: #f0f0ff;
+    }
+    #s2-title .cyan { color: #00d4ff; }
+    #s2-desc {
+      font-size: 34px;
+      color: rgba(240, 240, 255, 0.6);
+      font-weight: 400;
+      line-height: 1.45;
+      max-width: 1260px;
+    }
+    #s2-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 16px;
+      background: rgba(0, 212, 255, 0.08);
+      border: 1px solid rgba(0, 212, 255, 0.25);
+      border-radius: 100px;
+      padding: 14px 36px;
+      color: #00d4ff;
+      font-size: 26px;
+      font-weight: 500;
+      width: fit-content;
+    }
+    #s2-pill .dot {
+      width: 10px; height: 10px;
+      background: #00d4ff;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ──────────────────────────────────────────
+       SCENE 3 — Stats
+    ────────────────────────────────────────── */
+    #s3-label {
+      font-size: 22px;
+      color: #ff6b35;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    #s3-title {
+      font-size: 56px;
+      font-weight: 700;
+      color: #f0f0ff;
+      letter-spacing: -0.015em;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 28px;
+    }
+    .stat-card {
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 20px;
+      padding: 44px 36px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .stat-value {
+      font-size: 76px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-unit {
+      font-size: 36px;
+      font-weight: 600;
+    }
+    .stat-label {
+      font-size: 22px;
+      color: rgba(240, 240, 255, 0.45);
+      font-weight: 400;
+    }
+
+    /* ──────────────────────────────────────────
+       SCENE 4 — Outro
+    ────────────────────────────────────────── */
+    #s4-eyebrow {
+      font-size: 24px;
+      color: rgba(240, 240, 255, 0.4);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+    #s4-title {
+      font-size: 110px;
+      font-weight: 800;
+      line-height: 0.92;
+      letter-spacing: -0.03em;
+    }
+    #s4-line1 { color: #f0f0ff; display: block; }
+    #s4-line2 { color: #00d4ff; display: block; }
+    #s4-credit {
+      font-size: 26px;
+      color: rgba(240, 240, 255, 0.3);
+      font-weight: 400;
+      margin-top: 12px;
+    }
+
+    /* Transition overlays start invisible */
+    #t1, #t2, #t3 { opacity: 0; }
+  </style>
+</head>
+<body>
+  <div id="verkor-main" data-composition-id="verkor-main" data-start="0" data-width="1920" data-height="1080">
+
+    <!-- ── SCENE 1: Hook (0–4.5s) ── -->
+    <div id="s1" class="scene clip"
+         data-start="0" data-duration="4.5" data-track-index="1">
+      <div class="grid-bg"></div>
+      <div id="s1-glow" data-layout-ignore></div>
+      <div id="s1-glow2" data-layout-ignore></div>
+      <div class="scene-content">
+        <div id="s1-eyebrow">March 2026 · arXiv:2603.08716</div>
+        <div id="s1-title">AI Built<br><span class="accent">a CPU.</span></div>
+        <div id="s1-sub">In 12 hours. From a 219-word spec.</div>
+      </div>
+    </div>
+
+    <!-- ── SCENE 2: Design Conductor (4.5–9s) ── -->
+    <div id="s2" class="scene clip"
+         data-start="4.5" data-duration="4.5" data-track-index="1">
+      <div class="grid-bg"></div>
+      <div class="scene-content">
+        <div id="s2-label">Design Conductor</div>
+        <div id="s2-title">Spec <span class="cyan">→</span> Silicon.<br>End-to-End.</div>
+        <div id="s2-desc">The first autonomous agent to produce a complete, tape-out ready GDSII chip design — fully autonomously, no human in the loop.</div>
+        <div id="s2-pill">
+          <div class="dot"></div>
+          219 words in &nbsp;·&nbsp; VerCore CPU out
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SCENE 3: Stats (9–13.5s) ── -->
+    <div id="s3" class="scene clip"
+         data-start="9" data-duration="4.5" data-track-index="1">
+      <div class="grid-bg"></div>
+      <div class="scene-content" style="gap: 32px;">
+        <div id="s3-label">VerCore — What DC Built</div>
+        <div id="s3-title">Results in 12 hours</div>
+        <div class="stats-grid">
+          <div class="stat-card" id="stat1">
+            <div class="stat-value" style="color: #00d4ff;">1.48<span class="stat-unit"> GHz</span></div>
+            <div class="stat-label">Clock Rate</div>
+          </div>
+          <div class="stat-card" id="stat2">
+            <div class="stat-value" style="color: #7c3aed;">3261</div>
+            <div class="stat-label">CoreMark Score</div>
+          </div>
+          <div class="stat-card" id="stat3">
+            <div class="stat-value" style="color: #ff6b35;">7<span class="stat-unit">nm</span></div>
+            <div class="stat-label">Process Node</div>
+          </div>
+          <div class="stat-card" id="stat4">
+            <div class="stat-value" style="color: #00d4ff;">12<span class="stat-unit">h</span></div>
+            <div class="stat-label">Build Time</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SCENE 4: Outro (13.5–15s) ── -->
+    <div id="s4" class="scene clip"
+         data-start="13.5" data-duration="1.5" data-track-index="1">
+      <div class="grid-bg"></div>
+      <div class="scene-content">
+        <div id="s4-eyebrow">The Verkor Team · verkor.io</div>
+        <div id="s4-title">
+          <span id="s4-line1">Chip Design.</span>
+          <span id="s4-line2">Reinvented.</span>
+        </div>
+        <div id="s4-credit">arXiv:2603.08716v1 · March 2026</div>
+      </div>
+    </div>
+
+    <!-- ── TRANSITIONS: fade-to-black overlays on separate tracks ── -->
+    <div id="t1" class="clip"
+         data-start="3.8" data-duration="1.2" data-track-index="2"
+         style="position:absolute;top:0;left:0;width:100%;height:100%;background:#07070f;pointer-events:none;"></div>
+    <div id="t2" class="clip"
+         data-start="8.3" data-duration="1.2" data-track-index="3"
+         style="position:absolute;top:0;left:0;width:100%;height:100%;background:#07070f;pointer-events:none;"></div>
+    <div id="t3" class="clip"
+         data-start="12.8" data-duration="1.2" data-track-index="4"
+         style="position:absolute;top:0;left:0;width:100%;height:100%;background:#07070f;pointer-events:none;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // ── TRANSITIONS ──
+      // T1: fade to black 3.8→4.1, reveal 4.1→4.5
+      tl.to("#t1", { opacity: 1, duration: 0.3, ease: "power2.in" }, 3.8);
+      tl.to("#t1", { opacity: 0, duration: 0.4, ease: "power2.out" }, 4.1);
+      tl.set("#t1", { opacity: 0 }, 4.5);
+
+      // T2: fade to black 8.3→8.6, reveal 8.61→9.0
+      tl.to("#t2", { opacity: 1, duration: 0.3, ease: "power2.in" }, 8.3);
+      tl.to("#t2", { opacity: 0, duration: 0.4, ease: "power2.out", overwrite: "auto" }, 8.61);
+      tl.set("#t2", { opacity: 0 }, 9.0);
+
+      // T3: fade to black 12.8→13.1, reveal 13.11→13.5
+      tl.to("#t3", { opacity: 1, duration: 0.3, ease: "power2.in" }, 12.8);
+      tl.to("#t3", { opacity: 0, duration: 0.4, ease: "power2.out", overwrite: "auto" }, 13.11);
+      tl.set("#t3", { opacity: 0 }, 13.5);
+
+      // ── SCENE 1: entrances ──
+      tl.from("#s1-eyebrow", { opacity: 0, y: 20, duration: 0.5,  ease: "power3.out" }, 0.15);
+      tl.from("#s1-title",   { opacity: 0, y: 70, duration: 0.75, ease: "expo.out"   }, 0.35);
+      tl.from("#s1-sub",     { opacity: 0, y: 35, duration: 0.55, ease: "power2.out" }, 0.85);
+
+      // ── SCENE 2: entrances ──
+      tl.from("#s2-label", { opacity: 0, x: -28, duration: 0.45, ease: "power3.out"       }, 4.65);
+      tl.from("#s2-title", { opacity: 0, y: 55,  duration: 0.65, ease: "expo.out"          }, 4.9);
+      tl.from("#s2-desc",  { opacity: 0, y: 32,  duration: 0.5,  ease: "power2.out"        }, 5.35);
+      tl.from("#s2-pill",  { opacity: 0, scale: 0.88, duration: 0.4, ease: "back.out(1.4)" }, 5.75);
+
+      // ── SCENE 3: entrances ──
+      tl.from("#s3-label", { opacity: 0, x: -24, duration: 0.4,  ease: "power3.out"       }, 9.2);
+      tl.from("#s3-title", { opacity: 0, y: 40,  duration: 0.5,  ease: "expo.out"          }, 9.45);
+      tl.from("#stat1",    { opacity: 0, y: 45,  duration: 0.45, ease: "power3.out"        }, 9.8);
+      tl.from("#stat2",    { opacity: 0, y: 45,  duration: 0.45, ease: "power2.out"        }, 9.95);
+      tl.from("#stat3",    { opacity: 0, y: 45,  duration: 0.45, ease: "back.out(1.2)"     }, 10.1);
+      tl.from("#stat4",    { opacity: 0, y: 45,  duration: 0.45, ease: "expo.out"          }, 10.25);
+
+      // ── SCENE 4: entrances ──
+      tl.from("#s4-eyebrow", { opacity: 0,             duration: 0.4,  ease: "power2.out" }, 13.65);
+      tl.from("#s4-line1",   { opacity: 0, y: 45,      duration: 0.55, ease: "expo.out"   }, 13.8);
+      tl.from("#s4-line2",   { opacity: 0, y: 45,      duration: 0.55, ease: "expo.out"   }, 14.0);
+      tl.from("#s4-credit",  { opacity: 0,             duration: 0.4,  ease: "power2.out" }, 14.3);
+
+      // ── FINAL FADE OUT (scene 4 only — allowed on last scene) ──
+      tl.to("#s4", { opacity: 0, duration: 0.5, ease: "power2.in" }, 14.6);
+
+      window.__timelines["verkor-main"] = tl;
+    </script>
+  </div>
+</body>
+</html>
