@@ -101,7 +101,7 @@ use hyperframes to create a bar chart race video from lang-popularity/data.csv s
 
 ### The Output
 
-<video src="YOUR_LANG_MP4_URL_HERE" controls width="100%"></video>
+<video src="https://github.com/user-attachments/assets/4f2e02ea-6e2d-40f7-9a61-82785c93e918" controls width="100%"></video>
 
 | Property | Value |
 |---|---|
