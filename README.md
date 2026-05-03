@@ -1,6 +1,10 @@
-# HyperFrames Demo — Verkor Paper Video
+# HyperFrames Demo
 
-A test of [HyperFrames](https://github.com/heygen-com/hyperframes) generating a 15-second research paper explainer video using Claude Code as the authoring agent.
+Two one-shot demos of [HyperFrames](https://github.com/heygen-com/hyperframes) generating videos from a single prompt using Claude Code as the authoring agent — no manual HTML editing, no keyframing.
+
+---
+
+## Demo 1 — Research Paper Explainer (Verkor)
 
 ## The Prompt
 
@@ -84,6 +88,62 @@ verkor/
 └── renders/
     └── verkor_2026-05-03_07-17-02.mp4     # Rendered output (991 KB)
 ```
+
+---
+
+## Demo 2 — Bar Chart Race (Programming Language Popularity)
+
+### The Prompt
+
+```
+use hyperframes to create a bar chart race video from lang-popularity/data.csv showing programming language popularity 2016–2024
+```
+
+### The Output
+
+<video src="YOUR_LANG_MP4_URL_HERE" controls width="100%"></video>
+
+| Property | Value |
+|---|---|
+| Duration | 22.5 seconds |
+| Resolution | 1920 × 1080 |
+| Frame rate | 30 fps |
+| File size | 2.1 MB |
+| Render time | 43.8s |
+
+### What it shows
+
+8 languages race from 2016 to 2024, sourced from the Stack Overflow Developer Survey. Key moments:
+- **2018** — JavaScript hits its all-time peak (71.5%), Java briefly surges to 45.4%
+- **2019–2020** — Python overtakes Java, claims 2nd place
+- **2021–2022** — TypeScript overtakes Java (a notable rank swap mid-animation)
+- **2023–2024** — Rust rockets from near-zero to within reach of Go; Python approaches 51%
+
+### How it was made
+
+Claude Code generated a [72-row CSV](lang-popularity/data.csv) from Stack Overflow survey research, then wrote a HyperFrames composition that:
+- Reads all data embedded in JS (no runtime fetch)
+- Animates bar `width` and row `y` (rank) simultaneously via GSAP `power1.inOut`
+- Updates value text deterministically using `tl.set(attr)` + CSS `content: attr(data-val)` — no `onUpdate` callbacks
+- Flashes the year badge on each year change via `fromTo` with explicit start/end state
+
+```bash
+cd lang-popularity
+npx hyperframes preview   # live in browser with scrub timeline
+npx hyperframes render    # → renders/lang-popularity_2026-05-03_12-10-59.mp4
+```
+
+### Files
+
+```
+lang-popularity/
+├── data.csv                                              # Source data (8 languages × 9 years)
+├── index.html                                            # HyperFrames composition source
+└── renders/
+    └── lang-popularity_2026-05-03_12-10-59.mp4          # Rendered output (2.1 MB)
+```
+
+---
 
 ## Requirements
 

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    #lang-race {
+      position: relative;
+      background: #0c0d0f;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    /* ── Decoratives ── */
+    #bg-glow {
+      position: absolute;
+      top: 50%; left: 58%;
+      transform: translate(-50%, -50%);
+      width: 1400px; height: 700px;
+      background: radial-gradient(ellipse, rgba(49,120,198,0.07) 0%, transparent 68%);
+      pointer-events: none;
+    }
+    #year-watermark {
+      position: absolute;
+      right: -30px; bottom: -80px;
+      font-size: 310px; font-weight: 900;
+      color: rgba(255,255,255,0.035);
+      letter-spacing: -0.04em; line-height: 1;
+      pointer-events: none; user-select: none;
+    }
+    #year-watermark::after { content: attr(data-val); }
+
+    /* ── Header ── */
+    #chart-title {
+      position: absolute;
+      top: 36px; left: 72px;
+      font-size: 36px; font-weight: 700;
+      color: rgba(255,255,255,0.92);
+      letter-spacing: -0.015em;
+    }
+    #chart-subtitle {
+      position: absolute;
+      top: 86px; left: 72px;
+      font-size: 20px; font-weight: 400;
+      color: rgba(255,255,255,0.36);
+    }
+    #title-rule {
+      position: absolute;
+      top: 138px; left: 72px;
+      width: 1776px; height: 1px;
+      background: rgba(255,255,255,0.07);
+      transform-origin: left center;
+    }
+
+    /* ── Year badge ── */
+    #year-badge {
+      position: absolute;
+      top: 36px; right: 72px;
+      font-size: 56px; font-weight: 800;
+      color: rgba(255,255,255,0.9);
+      letter-spacing: -0.025em; line-height: 1;
+    }
+    #year-badge::after { content: attr(data-val); }
+
+    /* ── Rank indicators (fixed — bars swim past them) ── */
+    .rank-num {
+      position: absolute;
+      left: 22px;
+      font-size: 18px; font-weight: 600;
+      color: rgba(255,255,255,0.1);
+      font-variant-numeric: tabular-nums;
+      width: 20px; text-align: center;
+    }
+
+    /* ── Source ── */
+    #source-note {
+      position: absolute;
+      bottom: 34px; left: 72px;
+      font-size: 17px; font-weight: 400;
+      color: rgba(255,255,255,0.2);
+    }
+
+    /* ── Bar rows (GSAP controls transform:translateY and opacity) ── */
+    .bar-row {
+      position: absolute;
+      left: 0; width: 100%; height: 102px;
+      opacity: 0;
+      will-change: transform, opacity;
+    }
+
+    /* Language label — right-aligned in label zone */
+    .bar-label {
+      position: absolute;
+      left: 72px; width: 218px;
+      top: 38px; /* (102-26)/2 = 38 — vertically centers 26px text in 102px row */
+      font-size: 26px; font-weight: 600;
+      color: rgba(255,255,255,0.82);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    /* Bar wrapper — overflow:hidden clips value text for short bars */
+    .bar-wrap {
+      position: absolute;
+      left: 310px;
+      top: 16px;      /* (102 - 70) / 2 = 16 */
+      height: 70px;
+      width: 0;       /* GSAP animates this */
+      overflow: hidden;
+      border-radius: 0 10px 10px 0;
+      will-change: width;
+    }
+
+    /* Bar fill — fills the wrapper */
+    .bar-fill {
+      position: absolute;
+      left: 0; top: 0; width: 100%; height: 100%;
+    }
+
+    /* Value text inside bar — right-aligned, clipped when bar is narrow */
+    .bar-val {
+      position: absolute;
+      right: 14px;
+      top: 24px;      /* (70 - 22) / 2 = 24 — centers 22px text in 70px bar */
+      font-size: 22px; font-weight: 700;
+      white-space: nowrap;
+    }
+    .bar-val::after { content: attr(data-val) "%"; }
+  </style>
+</head>
+<body>
+  <div id="lang-race"
+       data-composition-id="lang-race"
+       data-start="0"
+       data-width="1920"
+       data-height="1080">
+
+    <!-- Decoratives -->
+    <div id="bg-glow"        data-layout-ignore></div>
+    <div id="year-watermark" data-layout-ignore data-val="2016"></div>
+
+    <!-- Header -->
+    <div id="chart-title">Programming Language Popularity</div>
+    <div id="chart-subtitle">% of developers actively using the language &nbsp;·&nbsp; Stack Overflow Developer Survey</div>
+    <div id="title-rule"></div>
+    <div id="year-badge" data-val="2016"></div>
+    <div id="source-note">Source: Stack Overflow Developer Survey 2016–2024 &nbsp;·&nbsp; 2016–2017 from survey series; gaps interpolated</div>
+
+    <!-- Fixed rank indicators (bars swim past these) -->
+    <!-- top = CHART_TOP + rank*ROW_H + ROW_H/2 - font/2 = 175 + rank*102 + 41 -->
+    <div class="rank-num" style="top:216px;">1</div>
+    <div class="rank-num" style="top:318px;">2</div>
+    <div class="rank-num" style="top:420px;">3</div>
+    <div class="rank-num" style="top:522px;">4</div>
+    <div class="rank-num" style="top:624px;">5</div>
+    <div class="rank-num" style="top:726px;">6</div>
+    <div class="rank-num" style="top:828px;">7</div>
+    <div class="rank-num" style="top:930px;">8</div>
+
+    <!--
+      Bar rows — initial CSS translateY = 2016 sort order:
+        js(55.4)→0  java(38.1)→1  cs(31.0)→2  py(24.0)→3
+        cpp(19.0)→4 ts(7.0)→5    go(5.4)→6   rust(1.5)→7
+      y = 175 + rank * 102
+    -->
+
+    <div class="bar-row" id="row-js"   style="transform:translateY(175px);">
+      <div class="bar-label">JavaScript</div>
+      <div class="bar-wrap" id="wrap-js">
+        <div class="bar-fill" style="background:#F7DF1E;"></div>
+        <div class="bar-val" id="val-js" data-val="55.4" style="color:rgba(0,0,0,0.65);"></div>
+      </div>
+    </div>
+
+    <div class="bar-row" id="row-java" style="transform:translateY(277px);">
+      <div class="bar-label">Java</div>
+      <div class="bar-wrap" id="wrap-java">
+        <div class="bar-fill" style="background:#ED8B00;"></div>
+        <div class="bar-val" id="val-java" data-val="38.1" style="color:rgba(0,0,0,0.65);"></div>
+      </div>
+    </div>
+
+    <div class="bar-row" id="row-cs"   style="transform:translateY(379px);">
+      <div class="bar-label">C#</div>
+      <div class="bar-wrap" id="wrap-cs">
+        <div class="bar-fill" style="background:#9B4F96;"></div>
+        <div class="bar-val" id="val-cs" data-val="31.0" style="color:rgba(255,255,255,0.9);"></div>
+      </div>
+    </div>
+
+    <div class="bar-row" id="row-py"   style="transform:translateY(481px);">
+      <div class="bar-label">Python</div>
+      <div class="bar-wrap" id="wrap-py">
+        <div class="bar-fill" style="background:#3776AB;"></div>
+        <div class="bar-val" id="val-py" data-val="24.0" style="color:rgba(255,255,255,0.9);"></div>
+      </div>
+    </div>
+
+    <div class="bar-row" id="row-cpp"  style="transform:translateY(583px);">
+      <div class="bar-label">C++</div>
+      <div class="bar-wrap" id="wrap-cpp">
+        <div class="bar-fill" style="background:#5C9BD6;"></div>
+        <div class="bar-val" id="val-cpp" data-val="19.0" style="color:rgba(0,0,0,0.65);"></div>
+      </div>
+    </div>
+
+    <div class="bar-row" id="row-ts"   style="transform:translateY(685px);">
+      <div class="bar-label">TypeScript</div>
+      <div class="bar-wrap" id="wrap-ts">
+        <div class="bar-fill" style="background:#3178C6;"></div>
+        <div class="bar-val" id="val-ts" data-val="7.0" style="color:rgba(255,255,255,0.9);"></div>
+      </div>
+    </div>
+
+    <div class="bar-row" id="row-go"   style="transform:translateY(787px);">
+      <div class="bar-label">Go</div>
+      <div class="bar-wrap" id="wrap-go">
+        <div class="bar-fill" style="background:#00ADD8;"></div>
+        <div class="bar-val" id="val-go" data-val="5.4" style="color:rgba(0,0,0,0.65);"></div>
+      </div>
+    </div>
+
+    <div class="bar-row" id="row-rust" style="transform:translateY(889px);">
+      <div class="bar-label">Rust</div>
+      <div class="bar-wrap" id="wrap-rust">
+        <div class="bar-fill" style="background:#CE422B;"></div>
+        <div class="bar-val" id="val-rust" data-val="1.5" style="color:rgba(255,255,255,0.9);"></div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      window.__timelines = window.__timelines || {};
+
+      // ── DATA (Stack Overflow Developer Survey) ──
+      const data = {
+        2016: { js:55.4,  py:24.0,  java:38.1,  ts:7.0,   cs:31.0,  cpp:19.0,  go:5.4,  rust:1.5  },
+        2017: { js:62.5,  py:31.7,  java:39.7,  ts:9.5,   cs:30.0,  cpp:22.3,  go:7.7,  rust:2.6  },
+        2018: { js:71.5,  py:37.9,  java:45.4,  ts:17.4,  cs:35.3,  cpp:14.4,  go:7.2,  rust:3.4  },
+        2019: { js:67.8,  py:41.7,  java:41.1,  ts:21.2,  cs:33.3,  cpp:20.0,  go:8.2,  rust:3.9  },
+        2020: { js:67.7,  py:44.1,  java:40.2,  ts:25.4,  cs:31.4,  cpp:23.9,  go:8.8,  rust:5.1  },
+        2021: { js:64.96, py:48.24, java:35.35, ts:30.19, cs:27.86, cpp:24.31, go:9.9,  rust:7.0  },
+        2022: { js:65.36, py:48.07, java:33.27, ts:34.83, cs:27.98, cpp:22.55, go:11.0, rust:9.3  },
+        2023: { js:63.61, py:49.28, java:30.55, ts:38.87, cs:27.62, cpp:22.42, go:13.2, rust:13.1 },
+        2024: { js:62.3,  py:51.0,  java:30.3,  ts:38.5,  cs:27.1,  cpp:22.7,  go:13.5, rust:12.6 }
+      };
+
+      const LANGS = ['js','py','java','ts','cs','cpp','go','rust'];
+      const YEARS = [2016,2017,2018,2019,2020,2021,2022,2023,2024];
+      const MAX_V = 71.5, MAX_W = 1450, CHART_TOP = 175, ROW_H = 102;
+
+      function bw(v) { return Math.round((v / MAX_V) * MAX_W); }
+      function getSorted(yr) {
+        return LANGS.slice().sort((a, b) => data[yr][b] - data[yr][a]);
+      }
+
+      const tl = gsap.timeline({ paused: true });
+
+      // ── AMBIENT GLOW (must be on tl — not standalone gsap.to) ──
+      // repeat count = Math.ceil(duration / cycle) - 1, never repeat:-1
+      const glowCycles = Math.ceil(21 / 4.5) - 1; // 4 cycles over 21s
+      tl.to('#bg-glow', {
+        scale: 1.2, opacity: 0.75,
+        yoyo: true, repeat: glowCycles,
+        duration: 4.5, ease: 'sine.inOut'
+      }, 0);
+
+      // ── INTRO — header elements ──
+      tl.fromTo('#chart-title',    { opacity:0, y:-16 }, { opacity:1, y:0,   duration:0.55, ease:'power3.out'    }, 0.1);
+      tl.fromTo('#chart-subtitle', { opacity:0 },        { opacity:1,        duration:0.45                       }, 0.45);
+      tl.fromTo('#title-rule',     { scaleX:0 },         { scaleX:1,         duration:0.65, ease:'power2.out'    }, 0.4);
+      tl.fromTo('#year-badge',     { opacity:0, y:12 }, { opacity:1, y:0, duration:0.5, ease:'power3.out' }, 0.3);
+      tl.fromTo('#source-note',    { opacity:0 },        { opacity:1,        duration:0.45                       }, 0.75);
+      tl.fromTo('#year-watermark', { opacity:0 },        { opacity:1,        duration:1.2                        }, 0.2);
+      tl.fromTo('.rank-num',       { opacity:0 },        { opacity:1,        duration:0.5, stagger:0.04          }, 0.5);
+
+      // ── INTRO — bars slide in top-to-bottom (2016 rank order) ──
+      getSorted(2016).forEach((id, i) => {
+        const delay = 0.25 + i * 0.075;
+        tl.fromTo(`#row-${id}`,  { opacity: 0 }, { opacity: 1, duration: 0.32, ease: 'power2.out'   }, delay);
+        tl.fromTo(`#wrap-${id}`, { width:  0  }, { width: bw(data[2016][id]), duration: 0.7, ease: 'power2.out' }, delay + 0.08);
+      });
+
+      // ── YEAR TRANSITIONS ──
+      const TRANS = 1.8;  // animation duration per year
+      const HOLD  = 0.2;  // hold after each transition
+      let t = 1.5;        // 2016 fully in by ~1.5s
+
+      YEARS.slice(1).forEach((year) => {
+        const sortedNow = getSorted(year);
+
+        // Animate each bar to its new rank (y) and value (width)
+        sortedNow.forEach((id, rank) => {
+          tl.to(`#row-${id}`,  { y: CHART_TOP + rank * ROW_H, duration: TRANS, ease: 'power1.inOut' }, t);
+          tl.to(`#wrap-${id}`, { width: bw(data[year][id]),   duration: TRANS, ease: 'power1.inOut' }, t);
+        });
+
+        // Update value text + year at transition midpoint
+        const mid = t + TRANS * 0.5;
+        LANGS.forEach(id => {
+          tl.set(`#val-${id}`, { attr: { 'data-val': data[year][id].toFixed(1) } }, mid);
+        });
+        tl.set('#year-watermark', { attr: { 'data-val': String(year) } }, mid);
+        tl.set('#year-badge',     { attr: { 'data-val': String(year) } }, mid);
+
+        // Flash year badge — fromTo is deterministic (explicit start state, no immediateRender)
+        tl.fromTo('#year-badge',
+          { color: '#60c8ff', scale: 1.1 },
+          { color: 'rgba(255,255,255,0.9)', scale: 1, duration: 0.45, ease: 'power2.out' },
+          mid
+        );
+
+        t += TRANS + HOLD;
+      });
+
+      // ── FINAL FADE OUT (last scene — allowed) ──
+      // t = 1.5 + 8 * (1.8 + 0.2) = 17.5 — 2024 fully settled
+      tl.to('#lang-race', { opacity: 0, duration: 0.6, ease: 'power2.in' }, t + 1.9);
+
+      window.__timelines['lang-race'] = tl;
+    </script>
+  </div>
+</body>
+</html>
