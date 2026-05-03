@@ -199,6 +199,59 @@ hermes-agent/
 
 ---
 
+## Demo 4 — Website → Social Ad (Anthropic)
+
+### The Prompt
+
+```
+Use website-to-hyperframes on anthropic.com and turn it into a 15-second social ad
+```
+
+### The Output
+
+<video src="https://github.com/user-attachments/assets/65e7454f-ec27-4049-b57a-dd60b7f3646b" controls width="100%"></video>
+
+| Property | Value |
+|---|---|
+| Duration | 16 seconds |
+| Resolution | 1920 × 1080 |
+| Frame rate | 30 fps |
+| File size | 1.8 MB |
+| Render time | 31.7s |
+
+### What it shows
+
+4 scenes built entirely from live content fetched from anthropic.com — no design files, no brand kit, no assets:
+
+1. **Hook** — "Safety at the frontier." + "AI research and products for humanity's long-term well-being."
+2. **400m on Mars** — The NASA/Perseverance story from the homepage, recomposed as a giant stat with context
+3. **Claude family** — Product lineup (Code · Security · Enterprise · Max) + model row (Opus · Sonnet · Haiku · Mythos)
+4. **CTA** — "Build AI that lasts." + anthropic.com
+
+### How it was made
+
+Claude Code fetched anthropic.com, extracted headlines, the NASA quote, product names, and brand tone, then wrote the composition from scratch. Key decisions inferred from the page:
+- Palette: warm dark `#0d0c0b` + cream `#f0ebe0` + terracotta `#c8643a` (matching Anthropic's dark aesthetic)
+- The 400m Mars fact was the most striking content on the page — made it the centerpiece of Scene 2 at 290px font
+- No screenshots, no assets — pure text-to-video from the page's HTML content
+
+```bash
+cd anthropic-ad
+npx hyperframes preview   # live in browser
+npx hyperframes render    # → renders/anthropic-ad_2026-05-03_14-24-46.mp4
+```
+
+### Files
+
+```
+anthropic-ad/
+├── index.html                                        # HyperFrames composition source
+└── renders/
+    └── anthropic-ad_2026-05-03_14-24-46.mp4         # Rendered output (1.8 MB)
+```
+
+---
+
 ## Requirements
 
 - Node.js ≥ 22
